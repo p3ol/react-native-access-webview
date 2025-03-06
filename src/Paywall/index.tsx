@@ -10,7 +10,7 @@ import {
   useReducer,
   useRef,
 } from 'react';
-import { type ViewProps, StyleSheet } from 'react-native';
+import { type ViewProps, StyleSheet, Linking } from 'react-native';
 import {
   type WebViewMessageEvent,
   type WebViewProps,
@@ -55,8 +55,28 @@ export interface PaywallProps extends AccessContextValue, ViewProps {
   onReady?: EventCallback<AccessEvents['ready']>;
   onRelease?: EventCallback<AccessEvents['release']>;
   onPaywallSeen?: EventCallback<AccessEvents['paywallSeen']>;
-  onRegister?: EventCallback<AccessEvents['register']>;
-  onFormSubmit?: EventCallback<AccessEvents['formSubmit']>;
+  onRegister?: EventCallback<
+    AccessEvents['register'],
+    | string[]
+    | { fieldKey: string; message: string; }[]
+    | void
+    | Promise<
+      | string[]
+      | { fieldKey: string; message: string; }[]
+      | void
+      >
+  >;
+  onFormSubmit?: EventCallback<
+    AccessEvents['formSubmit'],
+    | string[]
+    | { fieldKey: string; message: string; }[]
+    | void
+    | Promise<
+      | string[]
+      | { fieldKey: string; message: string; }[]
+      | void
+      >
+  >;
   onSubscribeClick?: EventCallback<AccessEvents['subscribeClick']>;
   onLoginClick?: EventCallback<AccessEvents['loginClick']>;
   onDiscoveryLinkClick?: EventCallback<AccessEvents['discoveryLinkClick']>;
@@ -136,6 +156,12 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
     webViewRef,
   }));
 
+  const sendMessage = useCallback((data: WebViewMessage) => {
+    const message = 'poool:rn:' + JSON.stringify(data);
+    console.log('Poool/Access/ReactNative : Sending message ->', message);
+    webViewRef.current?.postMessage(message);
+  }, []);
+
   const onMessage = useCallback(async (e: WebViewMessageEvent) => {
     let payload: WebViewMessage = { type: 'unknown' };
 
@@ -143,7 +169,8 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
       payload = JSON.parse(e.nativeEvent.data);
     } catch (err) {
       if (factoryConfig?.debug || config?.debug) {
-        console.error('Cannot decode webview message:', err);
+        console.error('Poool/Access/ReactNative:',
+          'Cannot decode webview message:', err);
       }
     }
 
@@ -189,26 +216,66 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
       case 'event.paywallSeen':
         onPaywallSeen?.(data as AccessEvents['paywallSeen']);
         break;
-      case 'event.register':
-        onRegister?.(data as AccessEvents['register']);
+      case 'event.register': {
+        try {
+          const result = await onRegister?.(data as AccessEvents['register']);
+
+          sendMessage({
+            type: 'event.register:resolve',
+            mid: payload.mid,
+            data: result,
+          });
+        } catch (err) {
+          sendMessage({
+            type: 'event.register:reject',
+            mid: payload.mid,
+            data: { message: (err as Error).message || err },
+          });
+        }
         break;
-      case 'event.formSubmit':
-        onFormSubmit?.(data as AccessEvents['formSubmit']);
+      }
+      case 'event.formSubmit': {
+        try {
+          const result = await onFormSubmit
+            ?.(data as AccessEvents['formSubmit']);
+
+          sendMessage({
+            type: 'event.formSubmit:resolve',
+            mid: payload.mid,
+            data: result,
+          });
+        } catch (err) {
+          sendMessage({
+            type: 'event.formSubmit:reject',
+            mid: payload.mid,
+            data: { message: (err as Error).message || err },
+          });
+        }
         break;
+      }
       case 'event.subscribeClick':
-        onSubscribeClick?.(data as AccessEvents['subscribeClick']);
+        await onSubscribeClick?.(data as AccessEvents['subscribeClick']);
+        Linking.openURL(data.url);
         break;
       case 'event.loginClick':
-        onLoginClick?.(data as AccessEvents['loginClick']);
+        await onLoginClick?.(data as AccessEvents['loginClick']);
+        Linking.openURL(data.url);
         break;
       case 'event.discoveryLinkClick':
-        onDiscoveryLinkClick?.(data as AccessEvents['discoveryLinkClick']);
+        await onDiscoveryLinkClick?.(
+          data as AccessEvents['discoveryLinkClick']);
+        Linking.openURL(data.url);
         break;
       case 'event.customButtonClick':
-        onCustomButtonClick?.(data as AccessEvents['customButtonClick']);
+        await onCustomButtonClick?.(data as AccessEvents['customButtonClick']);
+
+        if (data.url) {
+          Linking.openURL(data.url);
+        }
         break;
       case 'event.dataPolicyClick':
-        onDataPolicyClick?.(data as AccessEvents['dataPolicyClick']);
+        await onDataPolicyClick?.(data as AccessEvents['dataPolicyClick']);
+        Linking.openURL(data.url);
         break;
       case 'event.alternativeClick':
         onAlternativeClick?.(data as AccessEvents['alternativeClick']);
@@ -221,7 +288,8 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
         break;
       default:
         if (factoryConfig?.debug || config?.debug) {
-          console.warn('Unknown webview message:', payload);
+          console.warn('Poool/Access/ReactNative :',
+            'Unknown webview message:', payload);
         }
     }
   }, [
@@ -231,7 +299,7 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
     onRegister, onFormSubmit, onSubscribeClick, onLoginClick,
     onDiscoveryLinkClick, onCustomButtonClick, onDataPolicyClick,
     onAlternativeClick, onAnswer, onError,
-    releaseContent,
+    releaseContent, sendMessage,
   ]);
 
   const injectedJavaScript = useMemo(() => `
@@ -281,7 +349,10 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
           ...config || {}, ...factoryConfig || {},
         })},
         texts: ${JSON.stringify({ ...texts || {}, ...factoryTexts || {} })},
-        styles: ${JSON.stringify({ ...styles || {}, ...factoryStyles || {} })},
+        styles: ${JSON.stringify({
+          custom_css: 'html { touch-action: manipulation; }',
+          ...styles || {}, ...factoryStyles || {}
+        })},
         variables: ${JSON.stringify({ ...variables ||
           {}, ...factoryVariables || {} })},
         pageType: ${JSON.stringify(pageType)},

@@ -233,6 +233,10 @@ export declare interface AccessEvents extends BaseEvents {
 
 export interface WebViewMessage {
   type: string;
-  event?: keyof AccessEvents;
   data?: any;
+
+  // Some events need to wait for a promise of the event's response, so we
+  // assign a uuid to the message to be able to resolve/reject it later
+  // using an EventEmitter
+  mid?: string;
 }

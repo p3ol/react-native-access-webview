@@ -3,10 +3,14 @@ export default `
 <html lang="en" dir="ltr">
   <head>
     <base href="/" />
-    <meta name="viewport" content="width=device-width,user-scalable=no"/>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1"/>
     <meta charset="utf-8">
     <title>Paywall</title>
     <style>
+      html {
+        touch-action: manipulation;
+      }
+
       body {
         margin: 0;
       }
@@ -21,51 +25,182 @@ export default `
   <body>
     <div data-poool></div>
     <div id="poool-widget"></div>
-
     <script>
       globalThis.pooolAccessConfig = globalThis.pooolAccessConfig || {};
+      globalThis.pooolAccessConfig.debug = globalThis.pooolAccessConfig
+        .config?.debug ?? false;
+    </script>
+    <script>
+      class EventEmitter{
+        constructor() {
+          this.callbacks = {};
+        }
 
-      const sendMessage = (data) => {
-        globalThis.ReactNativeWebView.postMessage(JSON.stringify(data));
-      };
+        on(event, cb) {
+          if (globalThis.pooolAccessConfig.debug) {
+            console.log('Poool/Access/Webview :',
+              'Listening to <' + event + '> event');
+          }
 
-      const script = document.createElement('script');
-      script.src = globalThis.pooolAccessConfig.scriptUrl ||
-        'https://assets.poool.fr/access.min.js';
+          if (!this.callbacks[event]) {
+            this.callbacks[event] = [];
+          }
 
-      script.onload = async () => {
+          this.callbacks[event].push(cb);
+        }
 
-        console.log(globalThis.pooolAccessConfig.config);
-        Access
-          .init(globalThis.pooolAccessConfig.appId)
-          .config(globalThis.pooolAccessConfig.config)
-          .texts(globalThis.pooolAccessConfig.texts)
-          .styles(globalThis.pooolAccessConfig.styles)
-          .variables(globalThis.pooolAccessConfig.variables)
-          .on('resize', e => {
-            sendMessage({ type: 'event.resize', data: e });
-          })
-          .on('release', e => sendMessage({ type: 'event.release', data: e }))
-          .on('ready', e => sendMessage({ type: 'event.ready', data: e }))
-          .on('lock', e => sendMessage({ type: 'event.lock', data: e }))
-          .on('paywallSeen', e => sendMessage({ type: 'event.paywallSeen', data: e }))
-          .on('register', e => sendMessage({ type: 'event.register', data: e }))
-          .on('formSubmit', e => sendMessage({ type: 'event.formSubmit', data: e }))
-          .on('subscribeClick', e => sendMessage({ type: 'event.subscribeClick', data: e }))
-          .on('loginClick', e => sendMessage({ type: 'event.loginClick', data: e }))
-          .on('discoveryLinkClick', e => sendMessage({ type: 'event.discoveryLinkClick', data: e }))
-          .on('customButtonClick', e => sendMessage({ type: 'event.customButtonClick', data: e }))
-          .on('dataPolicyClick', e => sendMessage({ type: 'event.dataPolicyClick', data: e }))
-          .on('alternativeClick', e => sendMessage({ type: 'event.alternativeClick', data: e }))
-          .on('answer', e => sendMessage({ type: 'event.answer', data: e }))
-          .on('error', e => sendMessage({ type: 'event.error', data: e }))
-          .createPaywall({
-            target: '#poool-widget',
-            pageType: globalThis.pooolAccessConfig.pageType || 'premium',
+        off(event, cb) {
+          if (globalThis.pooolAccessConfig.debug) {
+            console.log('Poool/Access/Webview :',
+              'Removing listener from <' + event + '> event');
+          }
+
+          if (this.callbacks[event]) {
+            this.callbacks[event] = this.callbacks[event].filter(
+              callback => callback !== cb
+            );
+          }
+        }
+
+        emit(event, data) {
+          const cbs = this.callbacks[event];
+
+          if (cbs){
+            if (globalThis.pooolAccessConfig.debug) {
+              console.log('Poool/Access/Webview :',
+                'Fired <' + event + '> event listener');
+            }
+
+            cbs.forEach(cb => cb(data));
+          }
+        }
+      }
+    </script>
+    <script>
+      const eventReceiver = new EventEmitter();
+      globalThis.addEventListener('message', (event) => {
+        if (!event.data.startsWith('poool')) {
+          return;
+        }
+
+        if (globalThis.pooolAccessConfig.debug) {
+          console.log('Poool/Access/Webview :',
+            'Received message ->', event.data);
+        }
+
+        try {
+          const payload = JSON.parse(event.data.split('poool:rn:')[1]);
+
+          if (payload.type && payload.mid) {
+            eventReceiver.emit('poool:rn:' + payload.type, payload);
+          }
+        } catch (error) {
+          console.error(error, event.data);
+        }
+      });
+
+      const sendMessage = (data, waitForResponse) => {
+        if (waitForResponse) {
+          data.mid = globalThis.crypto.randomUUID();
+        }
+
+        if (waitForResponse) {
+          const eventName = 'poool:rn:' + data.type;
+
+          return new Promise((resolve, reject) => {
+            const onResolve = (event) => {
+              if (event.mid === data.mid) {
+                eventReceiver.off(eventName + ':resolve', onResolve);
+                eventReceiver.off(eventName + ':reject', onReject);
+
+                resolve(event.data);
+              }
+            };
+
+            const onReject = (event) => {
+              if (event.mid === data.mid) {
+                eventReceiver.off(eventName + ':resolve', onResolve);
+                eventReceiver.off(eventName + ':reject', onReject);
+                reject(event.data);
+              }
+            };
+
+            eventReceiver.on(eventName + ':resolve', onResolve);
+            eventReceiver.on(eventName + ':reject', onReject);
+
+            globalThis.ReactNativeWebView.postMessage(JSON.stringify(data));
           });
+        } else {
+          globalThis.ReactNativeWebView.postMessage(JSON.stringify(data));
+        }
       };
+    </script>
+    <script>
+      try {
+        const script = document.createElement('script');
+        script.src = globalThis.pooolAccessConfig.scriptUrl ||
+          'https://assets.poool.fr/access.min.js';
 
-      document.body.appendChild(script);
+        script.onload = async () => {
+          Access
+            .init(globalThis.pooolAccessConfig.appId)
+            .config(globalThis.pooolAccessConfig.config)
+            .texts(globalThis.pooolAccessConfig.texts)
+            .styles(globalThis.pooolAccessConfig.styles)
+            .variables(globalThis.pooolAccessConfig.variables)
+            .on('resize', e => sendMessage({ type: 'event.resize', data: e }))
+            .on('release', e => sendMessage({ type: 'event.release', data: e }))
+            .on('ready', e => sendMessage({ type: 'event.ready', data: e }))
+            .on('lock', e => sendMessage({ type: 'event.lock', data: e }))
+            .on('paywallSeen', e => sendMessage({ type: 'event.paywallSeen', data: e }))
+            .on('register', async e => {
+              return await sendMessage({
+                type: 'event.register',
+                data: e,
+              }, true);
+            })
+            .on('formSubmit', async e => {
+              return await sendMessage({
+                type: 'event.formSubmit',
+                data: e,
+              }, true);
+            })
+            .on('subscribeClick', e => {
+              sendMessage({ type: 'event.subscribeClick', data: e });
+              e.originalEvent.preventDefault();
+            })
+            .on('loginClick', e => {
+              sendMessage({ type: 'event.loginClick', data: e });
+              e.originalEvent.preventDefault();
+            })
+            .on('discoveryLinkClick', e => {
+              sendMessage({ type: 'event.discoveryLinkClick', data: e });
+              e.originalEvent.preventDefault();
+            })
+            .on('customButtonClick', e => {
+              sendMessage({ type: 'event.customButtonClick', data: e });
+
+              if (e.url) {
+                e.originalEvent.preventDefault();
+              }
+            })
+            .on('dataPolicyClick', e => {
+              sendMessage({ type: 'event.dataPolicyClick', data: e });
+              e.originalEvent.preventDefault();
+            })
+            .on('alternativeClick', e => sendMessage({ type: 'event.alternativeClick', data: e }))
+            .on('answer', e => sendMessage({ type: 'event.answer', data: e }))
+            .on('error', e => sendMessage({ type: 'event.error', data: e }))
+            .createPaywall({
+              target: '#poool-widget',
+              pageType: globalThis.pooolAccessConfig.pageType || 'premium',
+            });
+        };
+
+        document.body.appendChild(script);
+      } catch (error) {
+        console.error(error);
+      }
     </script>
   </body>
 </html>
