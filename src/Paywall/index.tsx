@@ -1,4 +1,3 @@
-
 import type { Poool } from 'poool-access';
 import {
   type RefObject,
@@ -10,7 +9,7 @@ import {
   useReducer,
   useRef,
 } from 'react';
-import { type ViewProps, StyleSheet, Linking } from 'react-native';
+import { type ViewProps, StyleSheet, Linking, Image } from 'react-native';
 import {
   type WebViewMessageEvent,
   type WebViewProps,
@@ -22,7 +21,7 @@ import { mockState } from '@junipero/core';
 import type { AccessContextValue } from '../contexts';
 import type { AccessEvents, EventCallback, WebViewMessage } from '../types';
 import { useAccess } from '../hooks';
-import paywallHtml from './template';
+import paywallHtml from './index.html';
 
 export interface PaywallProps extends AccessContextValue, ViewProps {
   /**
@@ -93,6 +92,7 @@ export interface PaywallState {
   width: number;
   height: number;
   loading: boolean;
+  template: string;
   userId?: string;
 }
 
@@ -143,14 +143,21 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
     width: 0,
     height: 0,
     userId: undefined,
+    template: '',
     loading: true,
   });
 
-  useEffect(() => {
-    AsyncStorage.getItem('_poool').then(userId => {
-      dispatch({ userId: userId || '', loading: false });
-    });
+  const init = useCallback(async () => {
+    const template = await fetch(Image.resolveAssetSource(paywallHtml)?.uri)
+      .then(response => response.text());
+    const userId = await AsyncStorage.getItem('_poool')
+
+    dispatch({ userId: userId || '', template, loading: false });
   }, []);
+
+  useEffect(() => {
+    init();
+  }, [init]);
 
   useImperativeHandle(ref, () => ({
     webViewRef,
@@ -369,7 +376,7 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
     state.userId,
   ]);
 
-  if (state.loading) {
+  if (state.loading || !state.template) {
     return null;
   }
 
@@ -384,7 +391,7 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
         minHeight: state.height,
       }]}
       source={source ?? {
-        html: paywallHtml,
+        html: state.template,
         baseUrl: 'http://localhost',
       }}
       onMessage={onMessage}
