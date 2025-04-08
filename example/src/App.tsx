@@ -1,12 +1,24 @@
-import { Text, View, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import {
+  Text,
+  View,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  Appearance,
+} from 'react-native';
 import {
   AccessContext,
   Snippet,
   RestrictedContent,
   Paywall,
 } from '@poool/react-native-access-webview';
+import { useEffect } from 'react';
 
 export default function App() {
+  useEffect(() => {
+    Appearance.setColorScheme('light');
+  }, []);
+
   return (
     <ScrollView>
       <AccessContext

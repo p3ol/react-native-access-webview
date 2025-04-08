@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "example",
-    "slug": "example",
+    "slug": "react-native-access-webview",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,6 +25,17 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e6777926-2cad-4c32-a483-ee8d1f28837d"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/e6777926-2cad-4c32-a483-ee8d1f28837d"
     }
   }
 }
