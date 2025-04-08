@@ -1,6 +1,12 @@
+import type { ForwardedRef } from 'react';
 import type { Poool } from 'poool-access';
 
-export declare type EventCallback<E = any, R = any> = (e: E) => R;
+import type { PaywallRef } from './Paywall';
+
+export declare type EventCallback<E = any, R = any> = (
+  event: E,
+  paywallRef: ForwardedRef<PaywallRef>,
+) => R;
 
 export declare type BaseEvents = {
   [key in Poool.EventsList]?: any

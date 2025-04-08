@@ -19,7 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { mockState } from '@junipero/core';
 
 import type { AccessContextValue } from '../contexts';
-import type { AccessEvents, EventCallback, WebViewMessage } from '../types';
+import type { AccessEvents, WebViewMessage } from '../types';
 import { useAccess } from '../hooks';
 import paywallHtml from './index.html';
 
@@ -34,57 +34,15 @@ export interface PaywallProps extends AccessContextValue, ViewProps {
    */
   source?: WebViewProps['source'];
   /**
-   * The poool access script url
-   *
-   * More infos:
-   * https://www.poool.dev/docs/access/javascript/access/installation
-   */
-  scriptUrl?: string;
-  /**
    * The current page type
    *
    * More infos:
    * https://www.poool.dev/docs/access/javascript/access/installation
    */
   pageType?: Parameters<Poool.AccessFactory['createPaywall']>[0]['pageType'];
-
-  // Events
-  onIdentityAvailable?: EventCallback<AccessEvents['identityAvailable']>;
-  onLock?: EventCallback<AccessEvents['lock']>;
-  onReady?: EventCallback<AccessEvents['ready']>;
-  onRelease?: EventCallback<AccessEvents['release']>;
-  onPaywallSeen?: EventCallback<AccessEvents['paywallSeen']>;
-  onRegister?: EventCallback<
-    AccessEvents['register'],
-    | string[]
-    | { fieldKey: string; message: string; }[]
-    | void
-    | Promise<
-      | string[]
-      | { fieldKey: string; message: string; }[]
-      | void
-      >
-  >;
-  onFormSubmit?: EventCallback<
-    AccessEvents['formSubmit'],
-    | string[]
-    | { fieldKey: string; message: string; }[]
-    | void
-    | Promise<
-      | string[]
-      | { fieldKey: string; message: string; }[]
-      | void
-      >
-  >;
-  onSubscribeClick?: EventCallback<AccessEvents['subscribeClick']>;
-  onLoginClick?: EventCallback<AccessEvents['loginClick']>;
-  onDiscoveryLinkClick?: EventCallback<AccessEvents['discoveryLinkClick']>;
-  onCustomButtonClick?: EventCallback<AccessEvents['customButtonClick']>;
-  onDataPolicyClick?: EventCallback<AccessEvents['dataPolicyClick']>;
-  onAlternativeClick?: EventCallback<AccessEvents['alternativeClick']>;
-  onAnswer?: EventCallback<AccessEvents['answer']>;
-  onError?: EventCallback<AccessEvents['error']>;
-  onResize?: EventCallback<AccessEvents['resize']>;
+  /**
+   * react-native-webview's onMessage handler
+   */
   onMessage?: WebViewProps['onMessage'];
 }
 
@@ -94,9 +52,11 @@ export interface PaywallState {
   loading: boolean;
   template: string;
   userId?: string;
+  error?: Error;
 }
 
 export interface PaywallRef {
+  id?: string;
   webViewRef: RefObject<WebView>;
 }
 
@@ -108,6 +68,7 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
   texts,
   styles,
   variables,
+  loadTimeout = 2000,
   pageType = 'premium',
   scriptUrl = 'https://assets.poool.fr/access.min.js',
   onIdentityAvailable,
@@ -129,6 +90,7 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
   ...rest
 }, ref) => {
   const webViewRef = useRef<WebView>(null);
+  const timeoutRef = useRef<NodeJS.Timeout>();
   const {
     appId,
     config: factoryConfig,
@@ -137,29 +99,55 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
     variables: factoryVariables,
     scriptUrl: factoryScriptUrl,
     releaseContent,
+    onIdentityAvailable: factoryOnIdentityAvailable,
+    onLock: factoryOnLock,
+    onReady: factoryOnReady,
+    onRelease: factoryOnRelease,
+    onPaywallSeen: factoryOnPaywallSeen,
+    onRegister: factoryOnRegister,
+    onFormSubmit: factoryOnFormSubmit,
+    onSubscribeClick: factoryOnSubscribeClick,
+    onLoginClick: factoryOnLoginClick,
+    onDiscoveryLinkClick: factoryOnDiscoveryLinkClick,
+    onCustomButtonClick: factoryOnCustomButtonClick,
+    onDataPolicyClick: factoryOnDataPolicyClick,
+    onAlternativeClick: factoryOnAlternativeClick,
+    onAnswer: factoryOnAnswer,
+    onResize: factoryOnResize,
+    onError: factoryOnError,
   } = useAccess();
-
   const [state, dispatch] = useReducer(mockState<PaywallState>, {
     width: 0,
     height: 0,
     userId: undefined,
     template: '',
     loading: true,
+    error: undefined,
   });
 
   const init = useCallback(async () => {
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      const error = new Error('timeout');
+      dispatch({ loading: false, error });
+      (onError ?? factoryOnError)?.({ error, forceRelease: () => (
+        Promise.resolve(releaseContent?.(id || true))
+      ) }, ref);
+    }, loadTimeout);
+
     const template = await fetch(Image.resolveAssetSource(paywallHtml)?.uri)
       .then(response => response.text());
     const userId = await AsyncStorage.getItem('_poool')
 
     dispatch({ userId: userId || '', template, loading: false });
-  }, []);
+  }, [loadTimeout, id, ref, onError, factoryOnError, releaseContent]);
 
   useEffect(() => {
     init();
   }, [init]);
 
   useImperativeHandle(ref, () => ({
+    id,
     webViewRef,
   }));
 
@@ -167,6 +155,10 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
     const message = 'poool:rn:' + JSON.stringify(data);
     console.log('Poool/Access/ReactNative : Sending message ->', message);
     webViewRef.current?.postMessage(message);
+  }, []);
+
+  const onLoad = useCallback(() => {
+    clearTimeout(timeoutRef.current);
   }, []);
 
   const onMessage = useCallback(async (e: WebViewMessageEvent) => {
@@ -204,28 +196,35 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
           width: data.width || 0,
           height: data.height || 0,
         });
-        onResize?.(data as AccessEvents['resize']);
+        (onResize ?? factoryOnResize)
+          ?.(data as AccessEvents['resize'], ref);
         break;
       case 'event.identityAvailable':
         await AsyncStorage.setItem('_poool', data.userId);
-        onIdentityAvailable?.(data as AccessEvents['identityAvailable']);
+        (onIdentityAvailable ?? factoryOnIdentityAvailable)
+          ?.(data as AccessEvents['identityAvailable'], ref);
         break;
       case 'event.lock':
-        onLock?.(data as AccessEvents['lock']);
+        (onLock ?? factoryOnLock)
+          ?.(data as AccessEvents['lock'], ref);
         break;
       case 'event.ready':
-        onReady?.(data as AccessEvents['ready']);
+        (onReady ?? factoryOnReady)
+          ?.(data as AccessEvents['ready'], ref);
         break;
       case 'event.release':
         releaseContent?.(id || true);
-        onRelease?.(data as AccessEvents['release']);
+        (onRelease ?? factoryOnRelease)
+          ?.(data as AccessEvents['release'], ref);
         break;
       case 'event.paywallSeen':
-        onPaywallSeen?.(data as AccessEvents['paywallSeen']);
+        (onPaywallSeen ?? factoryOnPaywallSeen)
+          ?.(data as AccessEvents['paywallSeen'], ref);
         break;
       case 'event.register': {
         try {
-          const result = await onRegister?.(data as AccessEvents['register']);
+          const result = await (onRegister ?? factoryOnRegister)
+            ?.(data as AccessEvents['register'], ref);
 
           sendMessage({
             type: 'event.register:resolve',
@@ -243,8 +242,8 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
       }
       case 'event.formSubmit': {
         try {
-          const result = await onFormSubmit
-            ?.(data as AccessEvents['formSubmit']);
+          const result = await (onFormSubmit ?? factoryOnFormSubmit)
+            ?.(data as AccessEvents['formSubmit'], ref);
 
           sendMessage({
             type: 'event.formSubmit:resolve',
@@ -261,37 +260,44 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
         break;
       }
       case 'event.subscribeClick':
-        await onSubscribeClick?.(data as AccessEvents['subscribeClick']);
+        await (onSubscribeClick ?? factoryOnSubscribeClick)
+          ?.(data as AccessEvents['subscribeClick'], ref);
         Linking.openURL(data.url);
         break;
       case 'event.loginClick':
-        await onLoginClick?.(data as AccessEvents['loginClick']);
+        await (onLoginClick ?? factoryOnLoginClick)
+          ?.(data as AccessEvents['loginClick'], ref);
         Linking.openURL(data.url);
         break;
       case 'event.discoveryLinkClick':
-        await onDiscoveryLinkClick?.(
-          data as AccessEvents['discoveryLinkClick']);
+        await (onDiscoveryLinkClick ?? factoryOnDiscoveryLinkClick)
+          ?.(data as AccessEvents['discoveryLinkClick'], ref);
         Linking.openURL(data.url);
         break;
       case 'event.customButtonClick':
-        await onCustomButtonClick?.(data as AccessEvents['customButtonClick']);
+        await (onCustomButtonClick ?? factoryOnCustomButtonClick)
+          ?.(data as AccessEvents['customButtonClick'], ref);
 
         if (data.url) {
           Linking.openURL(data.url);
         }
         break;
       case 'event.dataPolicyClick':
-        await onDataPolicyClick?.(data as AccessEvents['dataPolicyClick']);
+        await (onDataPolicyClick ?? factoryOnDataPolicyClick)
+          ?.(data as AccessEvents['dataPolicyClick'], ref);
         Linking.openURL(data.url);
         break;
       case 'event.alternativeClick':
-        onAlternativeClick?.(data as AccessEvents['alternativeClick']);
+        (onAlternativeClick ?? factoryOnAlternativeClick)
+          ?.(data as AccessEvents['alternativeClick'], ref);
         break;
       case 'event.answer':
-        onAnswer?.(data as AccessEvents['answer']);
+        (onAnswer ?? factoryOnAnswer)
+          ?.(data as AccessEvents['answer'], ref);
         break;
       case 'event.error':
-        onError?.(data as AccessEvents['error']);
+        (onError ?? factoryOnError)
+          ?.(data as AccessEvents['error'], ref);
         break;
       default:
         if (factoryConfig?.debug || config?.debug) {
@@ -299,14 +305,20 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
             'Unknown webview message:', payload);
         }
     }
-  }, [
-    factoryConfig,
-    id, config,
+  }, [factoryConfig, id, config, ref,
+    // Own events
     onReady, onResize, onIdentityAvailable, onLock, onRelease, onPaywallSeen,
     onRegister, onFormSubmit, onSubscribeClick, onLoginClick,
     onDiscoveryLinkClick, onCustomButtonClick, onDataPolicyClick,
     onAlternativeClick, onAnswer, onError,
-    releaseContent, sendMessage,
+    // Factory events
+    factoryOnReady, factoryOnResize, factoryOnIdentityAvailable,
+    factoryOnLock, factoryOnRelease, factoryOnPaywallSeen, factoryOnRegister,
+    factoryOnFormSubmit, factoryOnSubscribeClick, factoryOnLoginClick,
+    factoryOnDiscoveryLinkClick, factoryOnCustomButtonClick,
+    factoryOnDataPolicyClick, factoryOnAlternativeClick, factoryOnAnswer,
+    factoryOnError,
+    releaseContent, sendMessage
   ]);
 
   const injectedJavaScript = useMemo(() => `
@@ -376,7 +388,7 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
     state.userId,
   ]);
 
-  if (state.loading || !state.template) {
+  if (state.loading || !state.template || state.error) {
     return null;
   }
 
@@ -394,6 +406,7 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
         html: state.template,
         baseUrl: 'http://localhost',
       }}
+      onLoad={onLoad}
       onMessage={onMessage}
     />
   );
@@ -405,6 +418,6 @@ export default Paywall;
 
 const rnStyles = StyleSheet.create({
   webview: {
-    backgroundColor:'transparent',
+    backgroundColor: 'transparent',
   },
 });

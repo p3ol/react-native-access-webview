@@ -3,16 +3,9 @@ import { mockState } from '@junipero/core';
 
 import { type AccessContextValue, AccessContext as Ctx } from '../contexts';
 
-export interface AccessContextProps extends
-  AccessContextValue, ComponentPropsWithoutRef<any> {
-  /**
-   * The poool access script url
-   *
-   * More infos:
-   * https://www.poool.dev/docs/access/javascript/access/installation
-   */
-  scriptUrl?: string;
-}
+export interface AccessContextProps extends Omit<
+  AccessContextValue, 'released' | 'releaseContent'
+>, ComponentPropsWithoutRef<any> {}
 
 export interface AccessContextState {
   released?: (string | boolean)[];
@@ -24,7 +17,24 @@ const AccessContext = ({
   texts,
   styles,
   variables,
+  loadTimeout = 2000,
   scriptUrl = 'https://assets.poool.fr/access.min.js',
+  onIdentityAvailable,
+  onLock,
+  onReady,
+  onRelease,
+  onPaywallSeen,
+  onRegister,
+  onFormSubmit,
+  onSubscribeClick,
+  onLoginClick,
+  onDiscoveryLinkClick,
+  onCustomButtonClick,
+  onDataPolicyClick,
+  onAlternativeClick,
+  onAnswer,
+  onResize,
+  onError,
   ...rest
 }: AccessContextProps) => {
   const [state, dispatch] = useReducer(mockState<AccessContextState>, {
@@ -42,12 +52,33 @@ const AccessContext = ({
     styles,
     variables,
     scriptUrl,
+    loadTimeout,
     released: state.released,
     releaseContent,
+    onIdentityAvailable,
+    onLock,
+    onReady,
+    onRelease,
+    onPaywallSeen,
+    onRegister,
+    onFormSubmit,
+    onSubscribeClick,
+    onLoginClick,
+    onDiscoveryLinkClick,
+    onCustomButtonClick,
+    onDataPolicyClick,
+    onAlternativeClick,
+    onAnswer,
+    onResize,
+    onError,
   }), [
-    appId, config, texts, styles, variables, scriptUrl,
+    appId, config, texts, styles, variables, scriptUrl, loadTimeout,
     state.released,
     releaseContent,
+    onIdentityAvailable, onLock, onReady, onRelease, onPaywallSeen,
+    onRegister, onFormSubmit, onSubscribeClick, onLoginClick,
+    onDiscoveryLinkClick, onCustomButtonClick, onDataPolicyClick,
+    onAlternativeClick, onAnswer, onResize, onError,
   ]);
 
   return (
