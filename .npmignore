@@ -1,0 +1,7 @@
+coverage
+example
+tests
+scripts
+.github
+.yarn
+*.tsbuildinfo
