@@ -7,7 +7,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "upload": "npx eas-cli@latest -y update"
+    "upload": "npx -y eas-cli@latest update"
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",
