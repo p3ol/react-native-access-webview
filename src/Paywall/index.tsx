@@ -9,7 +9,7 @@ import {
   useReducer,
   useRef,
 } from 'react';
-import { type ViewProps, StyleSheet, Linking, Image } from 'react-native';
+import { StyleSheet, Linking, Image } from 'react-native';
 import {
   type WebViewMessageEvent,
   type WebViewProps,
@@ -23,7 +23,8 @@ import type { AccessEvents, WebViewMessage } from '../types';
 import { useAccess } from '../hooks';
 import paywallHtml from './index.html';
 
-export interface PaywallProps extends AccessContextValue, ViewProps {
+export interface PaywallProps
+  extends AccessContextValue, Omit<WebViewProps, 'onError'> {
   /**
    * Optional unique paywall id. When released, the snippet with the same id
    * will be hidden, and the corresponding restricted content will be displayed.
