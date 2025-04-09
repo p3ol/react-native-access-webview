@@ -5,7 +5,7 @@
 ## Installation
 
 ```bash
-yarn add @poool/react-native-access-webview
+yarn add @poool/react-native-access-webview react-native-webview @react-native-async-storage/async-storage
 ```
 
 
