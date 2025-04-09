@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.0.2](https://github.com/p3ol/react-native-access-webview/compare/v1.0.1...v1.0.2) (2025-04-09)
+
+
+### Bug Fixes
+
+* type issues ([84d4446](https://github.com/p3ol/react-native-access-webview/commit/84d44464300ac87096f297c1c6ab63107e1abf39))
+
 ## [1.0.1](https://github.com/p3ol/react-native-access-webview/compare/v1.0.0...v1.0.1) (2025-04-09)
 
 
