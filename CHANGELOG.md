@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.0.1](https://github.com/p3ol/react-native-access-webview/compare/v1.0.0...v1.0.1) (2025-04-09)
+
+
+### Bug Fixes
+
+* set rnasyncstorage & rnwebview as peer deps ([73f603a](https://github.com/p3ol/react-native-access-webview/commit/73f603a41d61278fd619d15875bdae433d114e68))
+
 ## 1.0.0 (2025-04-08)
 
 
