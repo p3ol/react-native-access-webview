@@ -17,9 +17,10 @@ import {
   AccessContext,
   RestrictedContent,
   Paywall,
+  Snippet,
 } from '@poool/react-native-access-webview';
 
-export default = () => {
+export default () => {
   return (
     <>
       { /*
