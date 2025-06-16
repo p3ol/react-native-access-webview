@@ -194,8 +194,8 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
       }
       case 'event.resize':
         dispatch({
-          width: data.width || 0,
-          height: data.height || 0,
+          width: Number(data.width || 0),
+          height: Number(data.height || 0),
         });
         (onResize ?? factoryOnResize)
           ?.(data as AccessEvents['resize'], ref);
