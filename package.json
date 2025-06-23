@@ -1,6 +1,6 @@
 {
   "name": "@poool/react-native-access-webview",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Poool Access, but for React Native, but in a WebView",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",

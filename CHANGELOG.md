@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.0.5](https://github.com/p3ol/react-native-access-webview/compare/v1.0.4...v1.0.5) (2025-06-23)
+
+
+### Bug Fixes
+
+* paywall not showing up on android ([d6b7f13](https://github.com/p3ol/react-native-access-webview/commit/d6b7f13a1bbd8e6877e32c2a3a20cdd09204d746))
+* scrollable paywall on android ([1b722fe](https://github.com/p3ol/react-native-access-webview/commit/1b722fe250d4672cc66451170d1036fef8d3cf46))
+
 ## [1.0.4](https://github.com/p3ol/react-native-access-webview/compare/v1.0.3...v1.0.4) (2025-06-16)
 
 
