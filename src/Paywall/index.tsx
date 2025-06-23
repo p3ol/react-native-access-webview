@@ -399,7 +399,7 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
       scrollEnabled={false}
       setBuiltInZoomControls={false}
       { ...rest }
-      injectedJavaScript={injectedJavaScript}
+      injectedJavaScriptBeforeContentLoaded={injectedJavaScript}
       sharedCookiesEnabled={true}
       style={[rnStyles.webview, style, {
         minWidth: state.width,
