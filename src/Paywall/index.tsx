@@ -398,6 +398,9 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
       ref={webViewRef}
       scrollEnabled={false}
       setBuiltInZoomControls={false}
+      overScrollMode="never"
+      showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}
       { ...rest }
       injectedJavaScriptBeforeContentLoaded={injectedJavaScript}
       sharedCookiesEnabled={true}
