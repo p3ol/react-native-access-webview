@@ -51,6 +51,7 @@ export interface PaywallState {
   width: number;
   height: number;
   loading: boolean;
+  loaded: boolean;
   template: string;
   userId?: string;
   error?: Error;
@@ -123,10 +124,15 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
     userId: undefined,
     template: '',
     loading: true,
+    loaded: false,
     error: undefined,
   });
 
   const init = useCallback(async () => {
+    if (state.loaded) {
+      return;
+    }
+
     clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       const error = new Error('timeout');
@@ -141,7 +147,11 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
     const userId = await AsyncStorage.getItem('_poool')
 
     dispatch({ userId: userId || '', template, loading: false });
-  }, [loadTimeout, id, ref, onError, factoryOnError, releaseContent]);
+  }, [
+    loadTimeout, id, ref,
+    state.loaded,
+    onError, factoryOnError, releaseContent,
+  ]);
 
   useEffect(() => {
     init();
@@ -154,12 +164,17 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
 
   const sendMessage = useCallback((data: WebViewMessage) => {
     const message = 'poool:rn:' + JSON.stringify(data);
-    console.log('Poool/Access/ReactNative : Sending message ->', message);
+
+    if (factoryConfig?.debug || config?.debug) {
+      console.log('Poool/Access/ReactNative : Sending message ->', message);
+    }
+
     webViewRef.current?.postMessage(message);
-  }, []);
+  }, [factoryConfig?.debug, config?.debug]);
 
   const onLoad = useCallback(() => {
     clearTimeout(timeoutRef.current);
+    dispatch({ loaded: true });
   }, []);
 
   const onMessage = useCallback(async (e: WebViewMessageEvent) => {
