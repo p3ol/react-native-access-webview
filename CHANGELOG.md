@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.0.6](https://github.com/p3ol/react-native-access-webview/compare/v1.0.5...v1.0.6) (2025-07-03)
+
+
+### Bug Fixes
+
+* correctly discard webview load timeout ([c208236](https://github.com/p3ol/react-native-access-webview/commit/c20823657008649e4270ef3a0c467186553b3f6e))
+
 ## [1.0.5](https://github.com/p3ol/react-native-access-webview/compare/v1.0.4...v1.0.5) (2025-06-23)
 
 
