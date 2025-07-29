@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.0.7](https://github.com/p3ol/react-native-access-webview/compare/v1.0.6...v1.0.7) (2025-07-29)
+
+
+### Bug Fixes
+
+* missing identity available event ([8bd5209](https://github.com/p3ol/react-native-access-webview/commit/8bd5209a0405e4716645f28758fb562804b976c9))
+
 ## [1.0.6](https://github.com/p3ol/react-native-access-webview/compare/v1.0.5...v1.0.6) (2025-07-03)
 
 
