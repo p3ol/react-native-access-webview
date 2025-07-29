@@ -147,6 +147,7 @@
             .texts(globalThis.pooolAccessConfig.texts)
             .styles(globalThis.pooolAccessConfig.styles)
             .variables(globalThis.pooolAccessConfig.variables)
+            .on('identityAvailable', e => sendMessage({ type: 'event.identityAvailable', data: e }))
             .on('resize', e => sendMessage({ type: 'event.resize', data: e }))
             .on('release', e => sendMessage({ type: 'event.release', data: e }))
             .on('ready', e => sendMessage({ type: 'event.ready', data: e }))
