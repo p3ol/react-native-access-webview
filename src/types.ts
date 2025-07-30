@@ -20,16 +20,16 @@ export declare interface AccessEvents extends BaseEvents {
    */
   identityAvailable?: {
     userId: string;
-    contextName: string;
-     contextType: string;
-     contextValue: string;
-     groupSlug: string;
-     scenarioName: string;
-     widget: string;
-     actionName: string;
-     trigger: string;
-     triggerType: string;
-     triggerValue: string;
+    groupSlug: string;
+    scenarioName: string;
+    widget: string;
+    actionName: string;
+    contextName?: string;
+    contextType?: string;
+    contextValue?: string;
+    trigger?: string;
+    triggerType?: string;
+    triggerValue?: string;
   };
   /**
    * Triggered when the paywall locks the current article.
@@ -43,9 +43,9 @@ export declare interface AccessEvents extends BaseEvents {
   ready?: {
     widget: string;
     actionName: string;
-    trigger: string;
-    triggerType: string;
-    triggerValue: string;
+    trigger?: string;
+    triggerType?: string;
+    triggerValue?: string;
   };
   /**
    * Triggered when the paywall has been seen by the user
@@ -56,9 +56,9 @@ export declare interface AccessEvents extends BaseEvents {
   paywallSeen?: {
     widget: string;
     actionName: string;
-    trigger: string;
-    triggerType: string;
-    triggerValue: string;
+    trigger?: string;
+    triggerType?: string;
+    triggerValue?: string;
   };
   /**
    * Triggered when the paywall unlocks the current article.
@@ -68,9 +68,9 @@ export declare interface AccessEvents extends BaseEvents {
   release?: {
     widget: string;
     actionName: string;
-    trigger: string;
-    triggerType: string;
-    triggerValue: string;
+    trigger?: string;
+    triggerType?: string;
+    triggerValue?: string;
   };
   /**
    * Triggered when a user registers to your newsletter using
