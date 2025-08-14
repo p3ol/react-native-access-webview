@@ -9,7 +9,7 @@ import {
   useReducer,
   useRef,
 } from 'react';
-import { StyleSheet, Linking, Image } from 'react-native';
+import { type ViewProps, StyleSheet, Linking, Image, View } from 'react-native';
 import {
   type WebViewMessageEvent,
   type WebViewProps,
@@ -42,6 +42,10 @@ export interface PaywallProps
    */
   pageType?: Parameters<Poool.AccessFactory['createPaywall']>[0]['pageType'];
   /**
+   * Props to be passed to the wrapper view
+   */
+  wrapperProps?: ViewProps;
+  /**
    * react-native-webview's onMessage handler
    */
   onMessage?: WebViewProps['onMessage'];
@@ -70,6 +74,7 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
   texts,
   styles,
   variables,
+  wrapperProps,
   loadTimeout = 2000,
   pageType = 'premium',
   scriptUrl = 'https://assets.poool.fr/access.min.js',
@@ -409,27 +414,33 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
   }
 
   return (
-    <WebView
-      ref={webViewRef}
-      scrollEnabled={false}
-      setBuiltInZoomControls={false}
-      overScrollMode="never"
-      showsHorizontalScrollIndicator={false}
-      showsVerticalScrollIndicator={false}
-      { ...rest }
-      injectedJavaScriptBeforeContentLoaded={injectedJavaScript}
-      sharedCookiesEnabled={true}
-      style={[rnStyles.webview, style, {
+    <View
+      collapsable={false}
+      { ...wrapperProps }
+      style={[wrapperProps?.style, {
         minWidth: state.width,
         minHeight: state.height,
       }]}
-      source={source ?? {
-        html: state.template,
-        baseUrl: 'http://localhost',
-      }}
-      onLoad={onLoad}
-      onMessage={onMessage}
-    />
+    >
+      <WebView
+        ref={webViewRef}
+        scrollEnabled={false}
+        setBuiltInZoomControls={false}
+        overScrollMode="never"
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        { ...rest }
+        injectedJavaScriptBeforeContentLoaded={injectedJavaScript}
+        sharedCookiesEnabled={true}
+        style={[rnStyles.webview, style]}
+        source={source ?? {
+          html: state.template,
+          baseUrl: 'http://localhost',
+        }}
+        onLoad={onLoad}
+        onMessage={onMessage}
+      />
+    </View>
   );
 });
 
@@ -440,5 +451,6 @@ export default Paywall;
 const rnStyles = StyleSheet.create({
   webview: {
     backgroundColor: 'transparent',
+    flex: 1,
   },
 });

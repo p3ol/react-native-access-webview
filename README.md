@@ -84,6 +84,7 @@ export default () => {
 - `pageType` {`string`} (optional, default: `'premium'`) Current page type (supported types: `page`, `premium`, `free`)
 - `scriptUrl` {`string`} (optional, default: `'https://assets.poool.fr/access.min.js'`) Default Poool Access SDK url
 - `scriptLoadTimeout` {`number`} (optional, default: `2000`) Timeout for the script to load
+- `wrapperProps` {`ViewProps`} (optional) Props to pass to the wrapper view around the webview component. Useful for styling or customization purposes.
 - `config` {`Record<string, any>`} (optional) Paywall config (see the [configuration](https://poool.dev/docs/javascript/access/configuration) documentation).
 - `styles` {`Record<string, any>`} (optional) Paywall styles (see the [styles](https://poool.dev//docs/javascript/access/appearances) documentation).
 - `texts` {`Record<string, string>`} (optional) Paywall texts (see the [texts](https://poool.dev/docs/javascript/access/texts) documentation).
