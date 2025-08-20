@@ -75,7 +75,7 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
   styles,
   variables,
   wrapperProps,
-  loadTimeout = 2000,
+  loadTimeout: loadTimeout_,
   pageType = 'premium',
   scriptUrl = 'https://assets.poool.fr/access.min.js',
   onIdentityAvailable,
@@ -105,6 +105,7 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
     styles: factoryStyles,
     variables: factoryVariables,
     scriptUrl: factoryScriptUrl,
+    loadTimeout: factoryLoadTimeout,
     releaseContent,
     onIdentityAvailable: factoryOnIdentityAvailable,
     onLock: factoryOnLock,
@@ -132,6 +133,10 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
     loaded: false,
     error: undefined,
   });
+
+  const loadTimeout = useMemo(() => (
+    loadTimeout_ ?? factoryLoadTimeout ?? 2000
+  ), [loadTimeout_, factoryLoadTimeout]);
 
   const init = useCallback(async () => {
     if (state.loaded) {
@@ -171,7 +176,7 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
     const message = 'poool:rn:' + JSON.stringify(data);
 
     if (factoryConfig?.debug || config?.debug) {
-      console.log('Poool/Access/ReactNative : Sending message ->', message);
+      console.log('Poool/Access/ReactNative: Sending message ->', message);
     }
 
     webViewRef.current?.postMessage(message);
