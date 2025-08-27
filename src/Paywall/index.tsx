@@ -21,7 +21,6 @@ import { mockState } from '@junipero/core';
 import type { AccessContextValue } from '../contexts';
 import type { AccessEvents, WebViewMessage } from '../types';
 import { useAccess } from '../hooks';
-import paywallHtml from './index.html';
 
 export interface PaywallProps
   extends AccessContextValue, Omit<WebViewProps, 'onError'> {
@@ -152,8 +151,9 @@ const Paywall = forwardRef<PaywallRef, PaywallProps>(({
       ) }, ref);
     }, loadTimeout);
 
-    const template = await fetch(Image.resolveAssetSource(paywallHtml)?.uri)
-      .then(response => response.text());
+    const template = await fetch(Image.resolveAssetSource(
+      require('./index.html')
+    )?.uri).then(response => response.text());
     const userId = await AsyncStorage.getItem('_poool')
 
     dispatch({ userId: userId || '', template, loading: false });
