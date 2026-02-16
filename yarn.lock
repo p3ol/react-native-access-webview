@@ -1632,7 +1632,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/cli@npm:^17.0.2":
+"@commitlint/cli@npm:^17.8.1":
   version: 17.8.1
   resolution: "@commitlint/cli@npm:17.8.1"
   dependencies:
@@ -1652,12 +1652,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/config-conventional@npm:17.0.2":
-  version: 17.0.2
-  resolution: "@commitlint/config-conventional@npm:17.0.2"
+"@commitlint/config-conventional@npm:17.8.1":
+  version: 17.8.1
+  resolution: "@commitlint/config-conventional@npm:17.8.1"
   dependencies:
-    conventional-changelog-conventionalcommits: "npm:^5.0.0"
-  checksum: 10c0/dd2fa895736f6159732b5a5fff276e696a0216250628a6054e60689a9193b9695b5c06df42161189dfb7547b351126d707cc33a5279d134988681742faed7886
+    conventional-changelog-conventionalcommits: "npm:^6.1.0"
+  checksum: 10c0/70abdc9f1361386060b30620decc376bc33ff0c27c6f2f89511df1d53127d238af7c3409db22651282caa614d54b91b1f5e35905d12b1f5db70603c351f6e482
   languageName: node
   linkType: hard
 
@@ -1820,7 +1820,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/types@npm:^17.0.0, @commitlint/types@npm:^17.8.1":
+"@commitlint/types@npm:^17.8.1":
   version: 17.8.1
   resolution: "@commitlint/types@npm:17.8.1"
   dependencies:
@@ -3078,7 +3078,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@poool/react-native-access-webview@workspace:."
   dependencies:
-    "@commitlint/config-conventional": "npm:17.0.2"
+    "@commitlint/config-conventional": "npm:17.8.1"
     "@evilmartians/lefthook": "npm:1.5.0"
     "@junipero/core": "npm:3.10.5"
     "@react-native-async-storage/async-storage": "npm:2.1.2"
@@ -3088,7 +3088,7 @@ __metadata:
     "@types/poool-access": "npm:5.18.0"
     "@types/react": "npm:18.2.44"
     commit-and-tag-version: "npm:12.5.0"
-    commitlint: "npm:17.0.2"
+    commitlint: "npm:17.8.1"
     del-cli: "npm:5.1.0"
     eslint: "npm:8.51.0"
     eslint-config-prettier: "npm:9.0.0"
@@ -5169,15 +5169,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"commitlint@npm:17.0.2":
-  version: 17.0.2
-  resolution: "commitlint@npm:17.0.2"
+"commitlint@npm:17.8.1":
+  version: 17.8.1
+  resolution: "commitlint@npm:17.8.1"
   dependencies:
-    "@commitlint/cli": "npm:^17.0.2"
-    "@commitlint/types": "npm:^17.0.0"
+    "@commitlint/cli": "npm:^17.8.1"
+    "@commitlint/types": "npm:^17.8.1"
   bin:
     commitlint: cli.js
-  checksum: 10c0/964e578293798188365c5801a23aa4e87cb23bc1b4fdc76209e45355fffcdef8957ac0c8cff4f2bef8b24c7a507eb56f009ee227dc22b35810d9476541e4f092
+  checksum: 10c0/1ecdc5046a2619a5d0b84a9015f61670c537854ba190982f31035e6f71d3d496a4ad0981c577b72d956b0fdace0f2e9f1652909dd8260d77434cf1a4905af233
   languageName: node
   linkType: hard
 
@@ -5335,23 +5335,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"conventional-changelog-conventionalcommits@npm:6.1.0, conventional-changelog-conventionalcommits@npm:^6.0.0":
+"conventional-changelog-conventionalcommits@npm:6.1.0, conventional-changelog-conventionalcommits@npm:^6.0.0, conventional-changelog-conventionalcommits@npm:^6.1.0":
   version: 6.1.0
   resolution: "conventional-changelog-conventionalcommits@npm:6.1.0"
   dependencies:
     compare-func: "npm:^2.0.0"
   checksum: 10c0/b313f5c0160d109f58d976566e1331ede3a25ab19fbf43f86763b280659195de00a68551f7f3930bf1cbf39a5e707d94f2a25b79996e59043fa9ee0bed68a79f
-  languageName: node
-  linkType: hard
-
-"conventional-changelog-conventionalcommits@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "conventional-changelog-conventionalcommits@npm:5.0.0"
-  dependencies:
-    compare-func: "npm:^2.0.0"
-    lodash: "npm:^4.17.15"
-    q: "npm:^1.5.1"
-  checksum: 10c0/02cc9313b44953332e9d45833615675cbc4d0f4129b27ea7218f8f4fc2f35124748725969c0cb3dc645713d19684540b87c5af25bd17ce3dccd7ef4e05e42442
   languageName: node
   linkType: hard
 
@@ -12530,13 +12519,6 @@ __metadata:
   version: 6.1.0
   resolution: "pure-rand@npm:6.1.0"
   checksum: 10c0/1abe217897bf74dcb3a0c9aba3555fe975023147b48db540aa2faf507aee91c03bf54f6aef0eb2bf59cc259a16d06b28eca37f0dc426d94f4692aeff02fb0e65
-  languageName: node
-  linkType: hard
-
-"q@npm:^1.5.1":
-  version: 1.5.1
-  resolution: "q@npm:1.5.1"
-  checksum: 10c0/7855fbdba126cb7e92ef3a16b47ba998c0786ec7fface236e3eb0135b65df36429d91a86b1fff3ab0927b4ac4ee88a2c44527c7c3b8e2a37efbec9fe34803df4
   languageName: node
   linkType: hard
 
